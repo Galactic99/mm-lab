@@ -1,0 +1,114 @@
+
+
+DATA SEGMENT
+ARR DW 1234H, 0A12H, 00F1H, 0777H, 0ABCDH  
+COUNT DW 5                                  
+MSG1 DB 0DH,0AH,'ORIGINAL ARRAY:$'
+MSG2 DB 0DH,0AH,'SORTED ARRAY:$'
+DATA ENDS
+
+CODE SEGMENT
+ASSUME CS:CODE, DS:DATA
+
+
+PRINT MACRO MSG
+    LEA DX, MSG
+    MOV AH, 09H
+    INT 21H
+ENDM
+
+
+START:
+    MOV AX, DATA
+    MOV DS, AX             
+
+    PRINT MSG1
+    MOV CX, COUNT
+    MOV SI, OFFSET ARR
+DISP_ORIG:
+    MOV AX, [SI]
+    CALL DISP_HEX
+    MOV DL, ' '
+    MOV AH, 02H
+    INT 21H
+    ADD SI, 2
+    LOOP DISP_ORIG
+
+
+    MOV CX, COUNT
+    DEC CX                 
+OUTER_LOOP:
+    MOV BX, CX              
+    
+    MOV SI, OFFSET ARR      
+
+INNER_LOOP:
+    MOV AX, [SI]            
+    MOV DX, [SI+2]          
+    CMP AX, DX
+    JBE NO_SWAP             
+
+    MOV [SI], DX            
+    MOV [SI+2], AX
+
+NO_SWAP:
+    ADD SI, 2               
+    DEC BX
+    JNZ INNER_LOOP
+    DEC CX
+    JNZ OUTER_LOOP
+
+   
+    PRINT MSG2
+    MOV CX, COUNT
+    MOV SI, OFFSET ARR
+DISP_SORT:
+    MOV AX, [SI]
+    CALL DISP_HEX
+    MOV DL, ' '
+    MOV AH, 02H
+    INT 21H
+    ADD SI, 2
+    LOOP DISP_SORT
+
+    HLT                     
+
+DISP_HEX PROC
+    PUSH AX
+    PUSH BX
+    PUSH CX
+    PUSH DX
+
+    MOV BX, AX        
+    MOV CX, 4        
+
+HEX_LOOP:
+    MOV DX, BX        
+    SHR DX, 4
+    SHR DX, 4
+    SHR DX, 4
+    AND DL, 0FH       
+
+    CMP DL, 0AH       
+    JB  DIGIT_IS_NUM
+    ADD DL, 37H       
+    JMP PRINT_CHAR
+DIGIT_IS_NUM:
+    ADD DL, 30H       
+
+PRINT_CHAR:
+    MOV AH, 02H
+    INT 21H
+
+    SHL BX, 4        
+    LOOP HEX_LOOP
+
+    POP DX
+    POP CX
+    POP BX
+    POP AX
+    RET
+DISP_HEX ENDP
+
+CODE ENDS
+END START
