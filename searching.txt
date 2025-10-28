@@ -1,83 +1,114 @@
 DATA SEGMENT
-    MSG1 DB 10,13,'ENTER THE NUMBER OF ELEMENTS:$'
-    MSG2 DB 10,13,'ENTER THE ELEMENTS: $'
-    MSG3 DB 10,13,'ENTER THE SEARCH ELEMENT: $'
-    MSG4 DB 10,13,'NOT FOUND$'
-    MSG5 DB 10,13,'FOUND$'
-    
-    ARR DB 50 DUP(0)  
-    LENGTH DB ?
+    MSG1 DB 'ENTER NUMBER OF ELEMENTS (1-9): $'
+    MSG2 DB 0AH,0DH,'ENTER ELEMENT (4 HEX DIGITS): $'
+    MSG3 DB 0AH,0DH,'ENTER SEARCH ELEMENT (4 HEX DIGITS): $'
+    STR1 DB 0AH,0DH,'FOUND $'
+    STR2 DB 0AH,0DH,'NOT FOUND $'
+
+    ARRAY DW 10 DUP(?)  
+    N DB ?
+    SEARCH DW ?
 DATA ENDS
 
 CODE SEGMENT
-    ASSUME CS:CODE DS:DATA
-    START:
-        MOV AX,DATA
-        MOV DS,AX
-        
-        LEA DX,MSG1
-        MOV AH,09H
-        INT 21H
-        
-        MOV AH,01H
-        INT 21H
-        SUB AL,30H
-        MOV LENGTH,AL
-        MOV CL,LENGTH
-        LEA SI,ARR  
-        
-        LEA DX,MSG2 
-        MOV AH,09H
-        INT 21H
-        
-        MOV AH,01H
-        
-        
-    READ: 
-        INT 21H
-        SUB AL,30H 
-        MOV [SI],AL
-        INC SI
-        DEC CL
-        JNZ READ  
-        
-        LEA SI,ARR  
-        
-        LEA DX,MSG3
-        
-        MOV AH,09H
-        INT 21H
-        
-        MOV AH,01H
-        INT 21H
-        
-        SUB AL,30H 
-        MOV BL,AL    
-        MOV CL,LENGTH
-        
-    SEARCH:    
-        MOV AL,[SI]
-        CMP AL,BL
-        JE FOUND
-        INC SI   
-        DEC CL
-        JNZ SEARCH
-    NOTFOUND:
-        LEA DX,MSG4
-        MOV AH,09H
-        INT 21H
-        JMP XX
-    FOUND:
-        LEA DX,MSG5
-        MOV AH,09H
-        INT 21H
-    XX:
-        MOV AH,4CH
-        INT 21H
+ASSUME CS:CODE, DS:DATA
+
+START:
+    MOV AX,DATA
+    MOV DS,AX
+
+    
+    LEA DX,MSG1
+    MOV AH,09H
+    INT 21H
+
+    MOV AH,01H        ; read 1 char (0-9)
+    INT 21H
+    SUB AL,30H        ; convert ASCII ? number
+    MOV N,AL
+    MOV CL,AL          ; store count in CL
+    MOV CH,00
+    LEA SI,ARRAY
+
+    
+INPUT_LOOP:
+    LEA DX,MSG2
+    MOV AH,09H
+    INT 21H
+
+    CALL READ_HEX
+    MOV [SI],AX
+    ADD SI,2
+    LOOP INPUT_LOOP
+
+   
+    LEA DX,MSG3
+    MOV AH,09H
+    INT 21H
+
+    CALL READ_HEX
+    MOV SEARCH,AX
+
+   
+    LEA SI,ARRAY
+    MOV AX,SEARCH
+SEARCH_LOOP:
+    CMP AX,[SI]
+    JE FOUND
+    ADD SI,2
+    LOOP SEARCH_LOOP
+
+    ; Not found
+    LEA DX,STR2
+    MOV AH,09H
+    INT 21H
+    JMP EXIT
+
+FOUND:
+    LEA DX,STR1
+    MOV AH,09H
+    INT 21H
+
+EXIT:
+    MOV AH,4CH
+    INT 21H
+
+READ_HEX PROC
+    PUSH CX
+    PUSH BX
+    XOR BX,BX
+    MOV CL,4
+READ_LOOP:
+    MOV AH,01H
+    INT 21H
+    CMP AL,0DH        ; ENTER? stop
+    JE END_READ
+    CALL HEX_TO_BIN
+    SHL BX,4
+    ADD BL,AL
+    LOOP READ_LOOP
+END_READ:
+    MOV AX,BX
+    POP BX
+    POP CX
+    RET
+READ_HEX ENDP
+
+
+HEX_TO_BIN PROC
+    CMP AL,'9'
+    JLE DIGIT
+    CMP AL,'F'
+    JLE UPPER
+    SUB AL,57H        ; for lowercase a-f
+    RET
+UPPER:
+    SUB AL,37H        ; for uppercase A-F
+    RET
+DIGIT:
+    SUB AL,30H
+    RET
+HEX_TO_BIN ENDP
+
 CODE ENDS
 END START
-             
-        
-       
-        
-           
