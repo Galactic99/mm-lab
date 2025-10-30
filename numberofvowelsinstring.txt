@@ -1,0 +1,72 @@
+data segment
+    MSG1 DB 10,13,'ENTER THE STRING: $'
+    MSG2 DB 10,13,'NUMBER OF VOWELS: $'
+    STRING DB 50 DUP(?)
+    COUNT DB ?
+data ends
+
+code segment
+    ASSUME CS:code DS:data
+
+START:
+    MOV AX,data
+    MOV DS,AX
+    LEA DX,MSG1
+    MOV AH,09H
+    INT 21H
+    LEA DI,STRING
+    MOV AH,01H
+READ:
+    INT 21H
+    CMP AL,0DH
+    JE TERMINATE
+    MOV [DI],AL
+    INC DI
+    JMP READ
+TERMINATE:
+    MOV AL,'$'
+    MOV [DI],AL
+    LEA SI,STRING
+    MOV CL,0
+NEXT:
+    MOV AL,[SI]
+    CMP AL,'$'
+    JE DISPLAY
+    CMP AL,'A'
+    JE INCV
+    CMP AL,'E'
+    JE INCV
+    CMP AL,'I'
+    JE INCV
+    CMP AL,'O'
+    JE INCV
+    CMP AL,'U'
+    JE INCV
+    CMP AL,'a'
+    JE INCV
+    CMP AL,'e'
+    JE INCV
+    CMP AL,'i'
+    JE INCV
+    CMP AL,'o'
+    JE INCV
+    CMP AL,'u'
+    JE INCV
+    JMP CONT
+INCV:
+    INC CL
+CONT:
+    INC SI
+    JMP NEXT
+DISPLAY:
+    LEA DX,MSG2
+    MOV AH,09H
+    INT 21H
+    ADD CL,30H
+    MOV DL,CL
+    MOV AH,02H
+    INT 21H
+    MOV AH,4CH
+    INT 21H
+code ends
+end start
