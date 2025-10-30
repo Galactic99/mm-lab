@@ -1,0 +1,46 @@
+data segment
+    MSG1 DB 10,13,'ENTER THE NUMBER: $'
+    MSG2 DB 10,13,'FACTORIAL IS: $'
+    NUM DB ?
+    FACT DW 0001H
+data ends
+
+code segment
+    ASSUME CS:code DS:data
+
+START:
+    MOV AX,data
+    MOV DS,AX
+    LEA DX,MSG1
+    MOV AH,09H
+    INT 21H
+    MOV AH,01H
+    INT 21H
+    SUB AL,30H
+    MOV CL,AL
+    MOV AX,0001H
+FACT_LOOP:
+    MUL CL
+    DEC CL
+    JNZ FACT_LOOP
+    LEA DX,MSG2
+    MOV AH,09H
+    INT 21H
+    MOV BX,AX
+    MOV CX,4
+    MOV AH,02H
+PRINT:
+    ROL BX,4
+    MOV DL,BL
+    AND DL,0FH
+    ADD DL,30H
+    CMP DL,3AH
+    JL DISP
+    ADD DL,07H
+DISP:
+    INT 21H
+    LOOP PRINT
+    MOV AH,4CH
+    INT 21H
+code ends
+end start
