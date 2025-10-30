@@ -1,0 +1,47 @@
+data segment
+    MSG1 DB 10,13,'ENTER FIRST NUMBER: $'
+    MSG2 DB 10,13,'ENTER SECOND NUMBER: $'
+    MSG3 DB 10,13,'GCD IS: $'
+data ends
+
+code segment
+    ASSUME CS:code DS:data
+
+START:
+    MOV AX,data
+    MOV DS,AX
+    LEA DX,MSG1
+    MOV AH,09H
+    INT 21H
+    MOV AH,01H
+    INT 21H
+    SUB AL,30H
+    MOV BL,AL
+    LEA DX,MSG2
+    MOV AH,09H
+    INT 21H
+    MOV AH,01H
+    INT 21H
+    SUB AL,30H
+    MOV BH,AL
+GCD_LOOP:
+    CMP BL,BH
+    JE DONE
+    JB SWAP
+    SUB BL,BH
+    JMP GCD_LOOP
+SWAP:
+    XCHG BL,BH
+    JMP GCD_LOOP
+DONE:
+    LEA DX,MSG3
+    MOV AH,09H
+    INT 21H
+    ADD BL,30H
+    MOV DL,BL
+    MOV AH,02H
+    INT 21H
+    MOV AH,4CH
+    INT 21H
+code ends
+end start
