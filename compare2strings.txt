@@ -1,0 +1,69 @@
+data segment
+    MSG1 DB 10,13,'ENTER FIRST STRING: $'
+    MSG2 DB 10,13,'ENTER SECOND STRING: $'
+    MSG3 DB 10,13,'STRINGS ARE EQUAL$'
+    MSG4 DB 10,13,'STRINGS ARE NOT EQUAL$'
+    STR1 DB 50 DUP(?)
+    STR2 DB 50 DUP(?)
+data ends
+
+code segment
+    ASSUME CS:code DS:data
+
+START:
+    MOV AX,data
+    MOV DS,AX
+    LEA DX,MSG1
+    MOV AH,09H
+    INT 21H
+    LEA DI,STR1
+    MOV AH,01H
+READ1:
+    INT 21H
+    CMP AL,0DH
+    JE TERM1
+    MOV [DI],AL
+    INC DI
+    JMP READ1
+TERM1:
+    MOV AL,'$'
+    MOV [DI],AL
+    LEA DX,MSG2
+    MOV AH,09H
+    INT 21H
+    LEA DI,STR2
+READ2:
+    INT 21H
+    CMP AL,0DH
+    JE TERM2
+    MOV [DI],AL
+    INC DI
+    JMP READ2
+TERM2:
+    MOV AL,'$'
+    MOV [DI],AL
+    LEA SI,STR1
+    LEA DI,STR2
+COMPARE:
+    MOV AL,[SI]
+    CMP AL,[DI]
+    JNE NOTEQUAL
+    CMP AL,'$'
+    JE EQUAL
+    INC SI
+    INC DI
+    JMP COMPARE
+EQUAL:
+    LEA DX,MSG3
+    MOV AH,09H
+    INT 21H
+    JMP EXIT
+NOTEQUAL:
+    LEA DX,MSG4
+    MOV AH,09H
+    INT 21H
+EXIT:
+    MOV AH,4CH
+    INT 21H
+code ends
+end start
