@@ -1,0 +1,39 @@
+data segment
+    MSG1 DB 10,13,'ENTER THE NUMBER: $'
+    MSG2 DB 10,13,'NUMBER OF 1 BITS: $'
+    NUM DB ?
+data ends
+
+code segment
+    ASSUME CS:code DS:data
+
+START:
+    MOV AX,data
+    MOV DS,AX
+    LEA DX,MSG1
+    MOV AH,09H
+    INT 21H
+    MOV AH,01H
+    INT 21H
+    SUB AL,30H
+    MOV BL,AL
+    MOV CL,0
+    MOV CH,08
+COUNT:
+    ROL BL,1
+    JNC SKIP
+    INC CL
+SKIP:
+    DEC CH
+    JNZ COUNT
+    LEA DX,MSG2
+    MOV AH,09H
+    INT 21H
+    ADD CL,30H
+    MOV DL,CL
+    MOV AH,02H
+    INT 21H
+    MOV AH,4CH
+    INT 21H
+code ends
+end start
